@@ -1,3 +1,6 @@
-# planner_node:
-#   ros__parameters:
-    
+planner_node:
+  ros__parameters:
+    obstacle_threshold: 50  # map cells costing more than this are treated as walls (~0.5 m from an obstacle)
+    cost_weight: 3.0        # how hard the path steers away from cells near obstacles
+    goal_tolerance: 0.5     # meters; this close counts as reaching the goal
+    goal_timeout: 90.0      # seconds before giving up on a goal
