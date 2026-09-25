@@ -22,13 +22,27 @@ void CostmapCore::initCostmap(double resolution, int width, int height,
   costmap_.info.origin.position.y = -height * resolution / 2.0;
   costmap_.info.origin.orientation.w = 1.0;
 
-  costmap_.data.assign(width * height, 0);
+  costmap_.data.assign(width * height, UNKNOWN);
 }
 
 void CostmapCore::updateFromScan(const sensor_msgs::msg::LaserScan& scan) {
-  // Start from a blank grid every scan, so obstacles that moved away don't linger
-  std::fill(costmap_.data.begin(), costmap_.data.end(), 0);
+  // Start from a blank grid every scan, so obstacles that moved away don't linger.
+  // Everything starts unknown; only cells a beam actually passes through become free.
+  std::fill(costmap_.data.begin(), costmap_.data.end(), UNKNOWN);
 
+  // Pass 1: every beam proves the space between the lidar and what it hit is free
+  for (size_t i = 0; i < scan.ranges.size(); ++i) {
+    double range = scan.ranges[i];
+    if (std::isnan(range) || range < scan.range_min) {
+      continue;
+    }
+    // A beam that hit nothing (inf) still shows free space out to the lidar's max range
+    double free_distance = std::min<double>(range, scan.range_max);
+    double angle = scan.angle_min + i * scan.angle_increment;
+    markFreeAlongBeam(angle, free_distance);
+  }
+
+  // Pass 2: mark the hits. Done after pass 1 so a later beam can't erase an earlier hit.
   std::vector<std::pair<int, int>> obstacles;
   for (size_t i = 0; i < scan.ranges.size(); ++i) {
     double range = scan.ranges[i];
@@ -49,6 +63,21 @@ void CostmapCore::updateFromScan(const sensor_msgs::msg::LaserScan& scan) {
   }
 
   inflateObstacles(obstacles);
+}
+
+void CostmapCore::markFreeAlongBeam(double angle, double distance) {
+  // Walk along the beam in half-cell steps so no cell it crosses gets skipped
+  const double step = costmap_.info.resolution / 2.0;
+  const double cos_a = std::cos(angle);
+  const double sin_a = std::sin(angle);
+
+  for (double d = 0.0; d < distance; d += step) {
+    int col, row;
+    if (!convertToGrid(d * cos_a, d * sin_a, col, row)) {
+      break;  // walked off the edge of the grid; the rest of the beam is off it too
+    }
+    costmap_.data[row * costmap_.info.width + col] = 0;
+  }
 }
 
 bool CostmapCore::convertToGrid(double x, double y, int& col, int& row) const {

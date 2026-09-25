@@ -1,3 +1,11 @@
-# map_memory_node:
-#   ros__parameters:
-    
+map_memory_node:
+  ros__parameters:
+    resolution: 0.2         # meters per cell; coarser than the costmap's 0.1 so merging leaves no holes
+    width: 160              # cells (160 * 0.2 = 32 m, covers the 30 m walled area)
+    height: 160
+    origin_x: -16.0         # bottom-left corner of the map in the world
+    origin_y: -16.0
+    frame_id: sim_world
+    update_distance: 1.5    # meters the robot must move before the next merge
+    max_update_interval: 5.0  # seconds; merge anyway after this long, even if standing still
+    update_period_ms: 1000

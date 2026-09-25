@@ -24,9 +24,14 @@ class CostmapCore {
 
     const nav_msgs::msg::OccupancyGrid& getCostmap() const { return costmap_; }
 
+    // OccupancyGrid's value for "never seen"
+    static constexpr int8_t UNKNOWN = -1;
+
   private:
     // Converts a point in meters (robot frame) to a grid cell. Returns false if it's off the grid.
     bool convertToGrid(double x, double y, int& col, int& row) const;
+    // Marks the cells a beam passed through as free (0)
+    void markFreeAlongBeam(double angle, double distance);
     void inflateObstacles(const std::vector<std::pair<int, int>>& obstacles);
 
     rclcpp::Logger logger_;
