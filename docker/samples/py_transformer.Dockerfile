@@ -3,6 +3,9 @@ ARG BASE_IMAGE=ghcr.io/watonomous/robot_base/base:humble-ubuntu22.04
 ################################ Source ################################
 FROM ${BASE_IMAGE} AS source
 
+# Refresh the ROS apt signing key (the one baked into the base image has expired)
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros2-latest-archive-keyring.gpg
+
 WORKDIR ${AMENT_WS}/src
 
 # Copy in source code 
@@ -18,6 +21,9 @@ RUN apt-get -qq update && rosdep update && \
 
 ################################# Dependencies ################################
 FROM ${BASE_IMAGE} AS dependencies
+
+# Refresh the ROS apt signing key (the one baked into the base image has expired)
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros2-latest-archive-keyring.gpg
 
 # Install Rosdep requirements
 COPY --from=source /tmp/colcon_install_list /tmp/colcon_install_list
