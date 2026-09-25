@@ -2,6 +2,7 @@
 #define COSTMAP_NODE_HPP_
 
 #include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 #include "costmap_core.hpp"
 
@@ -9,8 +10,13 @@ class CostmapNode : public rclcpp::Node {
   public:
     CostmapNode();
 
+    // Called by ROS every time a new scan arrives on /lidar
+    void laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
+
   private:
     robot::CostmapCore costmap_;
+
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr lidar_sub_;
 };
 
-#endif 
+#endif
