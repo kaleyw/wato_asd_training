@@ -1,3 +1,7 @@
-# control_node:
-#   ros__parameters:
-    
+control_node:
+  ros__parameters:
+    lookahead_distance: 1.0     # meters ahead on the path to aim for
+    goal_tolerance: 0.3         # meters; stop once this close to the end of the path
+    linear_speed: 0.5           # m/s forward
+    max_angular_speed: 1.0      # rad/s
+    rotate_in_place_angle: 1.0  # rad (~57 deg); turn on the spot if the target is further off than this
